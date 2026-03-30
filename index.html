@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuva com Névoa Dinâmica</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #05070a;
+            display: flex;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Nuvem no topo */
+        .nuvem {
+            position: absolute;
+            top: 50px;
+            width: 240px;
+            height: 70px;
+            background: #ffffff;
+            border-radius: 50px;
+            z-index: 100;
+            filter: blur(15px);
+            opacity: 0.8;
+        }
+        .nuvem::after { content: ''; position: absolute; background: #ffffff; width: 120px; height: 120px; border-radius: 50%; top: -60px; left: 30px; }
+        .nuvem::before { content: ''; position: absolute; background: #ffffff; width: 100px; height: 100px; border-radius: 50%; top: -40px; left: 110px; }
+
+        /* Chão com linha de horizonte bem visível */
+        .chao {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(to bottom, #0f121a, #000000);
+            border-top: 3px solid rgba(255, 255, 255, 0.5); /* Linha mais forte */
+            box-shadow: 0px -5px 20px rgba(255, 255, 255, 0.1);
+            z-index: 50;
+        }
+
+        /* Letra que cai */
+        .letra {
+            position: absolute;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 20px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            top: 100px;
+            z-index: 60;
+            animation: queda linear forwards;
+        }
+
+        /* Reflexo invertido */
+        .reflexo {
+            position: absolute;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 20px;
+            transform: scaleY(-1); 
+            filter: blur(4px); 
+            opacity: 0;
+            bottom: 118px;
+            z-index: 40;
+            animation: brilho-reflexo linear forwards;
+        }
+
+        /* A NÉVOA: Criada no ponto de impacto */
+        .nevoa-impacto {
+            position: absolute;
+            bottom: 115px; /* Levemente acima da linha do chão */
+            width: 60px;
+            height: 30px;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            filter: blur(8px);
+            z-index: 45;
+            transform: translateX(-50%); /* Centraliza sob a letra */
+            animation: fumaça 1s ease-out forwards;
+        }
+
+        @keyframes queda {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(calc(100vh - 225px)); opacity: 0.3; }
+        }
+
+        @keyframes brilho-reflexo {
+            0%, 80% { opacity: 0; }
+            90% { opacity: 0.4; transform: scaleY(-1) scaleX(1.5); }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fumaça {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            50% { opacity: 0.5; transform: translateX(-50%) scale(1.5) translateY(-10px); }
+            100% { opacity: 0; transform: translateX(-50%) scale(2) translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nuvem"></div>
+    <div id="chuva-container"></div>
+    <div class="chao"></div>
+
+    <script>
+        const container = document.getElementById('chuva-container');
+        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        function criarChuvaDeLetras() {
+            const char = caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+            const xPosBase = Math.random() * 220; // Variação dentro da nuvem
+            const xPosCSS = `calc(50vw - 110px + ${xPosBase}px)`;
+            const duracao = Math.random() * 0.5 + 0.8;
+
+            // 1. Criar Letra
+            const spanLetra = document.createElement('span');
+            spanLetra.classList.add('letra');
+            spanLetra.innerText = char;
+            spanLetra.style.left = xPosCSS;
+            spanLetra.style.animationDuration = duracao + 's';
+            container.appendChild(spanLetra);
+
+            // 2. Criar Reflexo
+            const spanReflexo = document.createElement('span');
+            spanReflexo.classList.add('reflexo');
+            spanReflexo.innerText = char;
+            spanReflexo.style.left = xPosCSS;
+            spanReflexo.style.animationDuration = duracao + 's';
+            container.appendChild(spanReflexo);
+
+            // 3. Criar a Névoa de Impacto (atrasada para o momento que toca o chão)
+            setTimeout(() => {
+                const divNevoa = document.createElement('div');
+                divNevoa.classList.add('nevoa-impacto');
+                divNevoa.style.left = xPosCSS;
+                container.appendChild(divNevoa);
+
+                // Remove a névoa após a animação dela acabar
+                setTimeout(() => divNevoa.remove(), 1000);
+            }, duracao * 900); // 90% do tempo da queda
+
+            // Limpeza das letras
+            setTimeout(() => {
+                spanLetra.remove();
+                spanReflexo.remove();
+            }, duracao * 1000);
+        }
+
+        setInterval(criarChuvaDeLetras, 70);
+    </script>
+</body>
+</html>
